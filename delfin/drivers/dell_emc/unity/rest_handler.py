@@ -24,8 +24,7 @@ from delfin.drivers.dell_emc.unity import consts
 from delfin.drivers.utils.rest_client import RestClient
 
 LOG = logging.getLogger(__name__)
-LOG = logging.getLogger(__name__)
-LOG = logging.getLogger(__name__)
+
 class RestHandler(RestClient):
     REST_AUTH_URL = '/api/types/loginSessionInfo/instances'
     REST_LOGOUT_URL = '/api/types/loginSessionInfo/action/logout'
