@@ -561,39 +561,3 @@ class TestUNITYStorDriver(TestCase):
     def test_parse_alert(self):
         trap = self.driver.parse_alert(context, TRAP_INFO)
         self.assertEqual(trap.get('alert_id'), trap_result.get('alert_id'))
-
-    def test_rest_close_connection(self):
-        m = mock.MagicMock(status_code=200)
-        with mock.patch.object(Session, 'post', return_value=m):
-            m.raise_for_status.return_value = 200
-            m.json.return_value = None
-            re = self.driver.close_connection()
-            self.assertIsNone(re)
-
-    def test_rest_handler_call(self):
-        m = mock.MagicMock(status_code=403)
-        with self.assertRaises(Exception) as exc:
-            with mock.patch.object(Session, 'get', return_value=m):
-                m.raise_for_status.return_value = 403
-                m.json.return_value = None
-                url = 'http://test'
-                self.driver.rest_handler.call(url, '', 'GET')
-        self.assertIn('Bad response from server', str(exc.exception))
-
-    def test_reset_connection(self):
-        RestHandler.logout = mock.Mock(return_value={})
-        m = mock.MagicMock(status_code=200)
-        with mock.patch.object(Session, 'get', return_value=m):
-            m.raise_for_status.return_value = 201
-            m.json.return_value = {
-                "EMC-CSRF-TOKEN": "97c13b8082444b36bc2103026205fa64"
-            }
-            kwargs = ACCESS_INFO
-            re = self.driver.reset_connection(context, **kwargs)
-            self.assertIsNone(re)
-
-    def test_err_storage_pools(self):
-        with self.assertRaises(Exception) as exc:
-            self.driver.list_storage_pools(context)
-        self.assertIn('Bad response from server',
-                      str(exc.exception))
