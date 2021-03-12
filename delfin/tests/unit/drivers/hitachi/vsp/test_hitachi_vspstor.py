@@ -349,16 +349,6 @@ class TestHitachiVspStorStorageDriver(TestCase):
             re = self.driver.close_connection()
             self.assertIsNone(re)
 
-    def test_rest_handler_cal(self):
-        m = mock.MagicMock(status_code=403)
-        with self.assertRaises(Exception) as exc:
-            with mock.patch.object(Session, 'get', return_value=m):
-                m.raise_for_status.return_value = 403
-                m.json.return_value = None
-                url = 'http://test'
-                self.driver.rest_handler.call(url, '', 'GET')
-        self.assertIn('Invalid ip or port', str(exc.exception))
-
     def test_reset_connection(self):
         RestHandler.logout = mock.Mock(return_value={})
         RestHandler.get_system_info = mock.Mock(return_value=GET_DEVICE_ID)
@@ -372,31 +362,3 @@ class TestHitachiVspStorStorageDriver(TestCase):
             kwargs = ACCESS_INFO
             re = self.driver.reset_connection(context, **kwargs)
             self.assertIsNone(re)
-
-    def test_err_storage_pools_err(self):
-        with self.assertRaises(Exception) as exc:
-            self.driver.list_storage_pools(context)
-        self.assertIn('Invalid ip or port',
-                      str(exc.exception))
-
-    def test_err_volumes(self):
-        with self.assertRaises(Exception) as exc:
-            self.driver.list_volumes(context)
-        self.assertIn('Invalid ip or port',
-                      str(exc.exception))
-
-    def test_list_volumes_call(self):
-        m = mock.MagicMock(status_code=200)
-        with mock.patch.object(Session, 'get', return_value=m):
-            m.raise_for_status.return_value = 200
-            m.json.return_value = GET_ALL_VOLUMES
-            self.driver.list_volumes(context)
-
-    def test_add_trap_config(self):
-        self.driver.add_trap_config(context, None)
-
-    def test_remove_trap_config(self):
-        self.driver.remove_trap_config(context, None)
-
-    def test_clear_alert(self):
-        self.driver.clear_alert(context, None)
