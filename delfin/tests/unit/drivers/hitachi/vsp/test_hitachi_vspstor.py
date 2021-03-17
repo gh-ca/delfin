@@ -297,5 +297,5 @@ class TestHitachiVspStorStorageDriver(TestCase):
 
     def test_parse_alert(self):
         trap_alert = self.driver.parse_alert(context, TRAP_INFO)
-        trap_alert['occur_time'] = 1605852610000,
+        trap_alert_result['occur_time'] = trap_alert['occur_time']
         self.assertEqual(trap_alert, trap_alert_result)
