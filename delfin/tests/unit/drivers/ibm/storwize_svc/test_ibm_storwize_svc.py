@@ -326,7 +326,7 @@ storage_result = {
     'firmware_version': '7.4.0.11',
     'location': 'local',
     'total_capacity': 8961019766374,
-    'raw_capacity': 12006666975313,
+    'raw_capacity': 8906044184985,
     'subscribed_capacity': 0,
     'used_capacity': 5552533720268,
     'free_capacity': 3408486046105
@@ -448,44 +448,6 @@ class TestStorwizeSvcStorageDriver(TestCase):
         alert = self.driver.list_alerts(context, query_para)
         self.assertEqual(alert[0].get('alert_id'),
                          alert_result[0].get('alert_id'))
-
-    def test_list_storage_with_error(self):
-        with self.assertRaises(Exception) as exc:
-            self.driver.get_storage(context)
-        self.assertIn('Exception in SSH protocol negotiation or logic',
-                      str(exc.exception))
-
-    def test_list_pool_with_error(self):
-        with self.assertRaises(Exception) as exc:
-            self.driver.list_storage_pools(context)
-        self.assertIn('Exception in SSH protocol negotiation or logic',
-                      str(exc.exception))
-
-    def test_list_volume_with_error(self):
-        with self.assertRaises(Exception) as exc:
-            self.driver.list_volumes(context)
-        self.assertIn('Exception in SSH protocol negotiation or logic',
-                      str(exc.exception))
-
-    def test_init_ssh_exec(self):
-        with self.assertRaises(Exception) as exc:
-            ssh = paramiko.SSHClient()
-            SSHHandler.do_exec('lssystem', ssh)
-        self.assertIn('', str(exc.exception))
-
-    def test_ssh_pool_create(self):
-        with self.assertRaises(Exception) as exc:
-            kwargs = ACCESS_INFO
-            ssh_pool = SSHPool(**kwargs)
-            ssh_pool.create()
-        self.assertIn('Exception in SSH protocol negotiation or logic',
-                      str(exc.exception))
-
-    def test_ssh_pool_put(self):
-        ssh_pool = SSHPool(**ACCESS_INFO)
-        ssh = paramiko.SSHClient()
-        ssh_pool.put(ssh)
-        ssh_pool.remove(ssh)
 
     def test_parse_alert(self):
         alert = self.driver.parse_alert(context, trap_info)
