@@ -15,7 +15,6 @@
 
 from setuptools import setup, find_packages
 
-
 setup(
     name="delfin",
     version="1.0.0",
@@ -42,6 +41,7 @@ setup(
             'dellemc vmax = delfin.drivers.dell_emc.vmax.vmax:VMAXStorageDriver',
             'dellemc vnx_block = delfin.drivers.dell_emc.vnx.vnx_block.vnx_block:VnxBlockStorDriver',
             'dellemc vplex = delfin.drivers.dell_emc.vplex.vplex_stor:VplexStorageDriver',
+            'dellemc xtremio = delfin.drivers.dell_emc.xtremio.xtremio:XtremioStorDriver',
             'hitachi vsp = delfin.drivers.hitachi.vsp.vsp_stor:HitachiVspDriver',
             'hpe 3par = delfin.drivers.hpe.hpe_3par.hpe_3parstor:Hpe3parStorDriver',
             'huawei oceanstor = delfin.drivers.huawei.oceanstor.oceanstor:OceanStorDriver',
