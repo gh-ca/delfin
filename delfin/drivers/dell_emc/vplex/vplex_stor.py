@@ -184,8 +184,7 @@ class VplexStorageDriver(driver.StorageDriver):
         return alert_handler.AlertHandler().parse_alert(context, alert)
 
     def list_alerts(self, context, query_para=None):
-        err_msg = "list_alerts is not supported in model %s" % \
-                  self.rest_handler.device_model
+        err_msg = "list_alerts is not supported in model VPLEX"
         LOG.error(err_msg)
         raise NotImplementedError(err_msg)
 
