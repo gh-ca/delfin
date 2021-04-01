@@ -221,6 +221,64 @@ GET_ALL_POOLS_SUMMARY = {
 GET_ALL_LUNS_SUMMARY = {
     "custom-data": "Total virtual-volume capacity is 8.17T."
 }
+GET_ALL_ENGINE_DIRECTOR = {
+    "context": [
+        {
+            "type": "director",
+            "parent": "/engines/engine-1-1/directors",
+            "attributes": [
+                {
+                    "name": "director-id",
+                    "value": "0x00000000472029e9"
+                },
+                {
+                    "name": "health-state",
+                    "value": "major-failure"
+                },
+                {
+                    "name": "name",
+                    "value": "director-1-1-A"
+                },
+                {
+                    "name": "operational-status",
+                    "value": [
+                        "ok"
+                    ]
+                }
+            ]
+        }
+    ]
+}
+controllers_result = [
+    {
+        'native_controller_id ': '0x00000000472029e9',
+        'name': 'director-1-1-A',
+        'status': 'abnormal', 'location ': '',
+        'storage_id ': '12345',
+        'soft_version ': '161.1.0.78.0',
+        'cpu_info': '',
+        'memory_size': ''
+    }
+]
+
+GET_VERSION_VERBOSE = {
+    "context": None,
+    "message": "getsysinfo",
+    "exception": None,
+    "custom-data": "What:     Mgmt Server Software\nVersion:  161.1.0.78\n	"
+                   "For director /engines/engine-1-1/directors/director-1-1-A:"
+                   "\n	"
+                   "What:     O/S\n	"
+                   "Version:  161.1.0.11 (SLES11)\n\n	"
+                   "What:     NSFW\n	"
+                   "Version:  161.1.0.78.0\n\n	"
+                   "What:      ZPEM\n	"
+                   "Version:  161.1.0.78.0-0\n	"
+                   "What:     Director Software\n	"
+                   "Version:  161.1.0.78.0\n\n	"
+                   "What:     SSD Model: P30056-0000000000000 000000000\n	"
+                   "Version:  0005\n"
+}
 
 
 class TestVplexStorDriver(TestCase):
@@ -265,3 +323,12 @@ class TestVplexStorDriver(TestCase):
             VplexStorageDriver(**ACCESS_INFO).list_alerts(context)
         self.assertEqual('list_alerts is not supported in model VPLEX',
                          str(exc.exception))
+
+    @mock.patch.object(RestHandler, 'get_version_verbose')
+    @mock.patch.object(RestHandler, 'get_engine_director_resp')
+    def test_list_controller(self, mock_controller, mocke_version):
+        mocke_version.return_value = GET_VERSION_VERBOSE
+        mock_controller.return_value = GET_ALL_ENGINE_DIRECTOR
+        controllers = VplexStorageDriver(**ACCESS_INFO). \
+            list_controllers(context)
+        self.assertDictEqual(controllers[0], controllers_result[0])

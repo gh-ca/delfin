@@ -124,3 +124,15 @@ class RestHandler(RestClient):
             err_msg = "Logout error: %s" % (six.text_type(e))
             LOG.error(err_msg)
             raise e
+
+    def get_engine_director_resp(self):
+        url = '%s/engines/*/directors/*' % consts.BASE_CONTEXT
+        response = self.get_rest_info(url)
+        return response
+
+    def get_version_verbose(self):
+        url = '%s/version' % consts.BASE_CONTEXT
+        args = '-a --verbose'
+        data = {"args": args}
+        response = self.get_rest_info(url, data, method='POST')
+        return response
