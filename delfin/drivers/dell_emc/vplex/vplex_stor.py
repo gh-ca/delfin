@@ -22,6 +22,7 @@ from delfin.common import constants
 from delfin.drivers import driver
 from delfin.drivers.dell_emc.vplex import alert_handler
 from delfin.drivers.dell_emc.vplex import rest_handler
+from delfin.drivers.dell_emc.vplex import consts
 
 LOG = log.getLogger(__name__)
 
@@ -333,17 +334,16 @@ class VplexStorageDriver(driver.StorageDriver):
                                                     director_version_map)
         for ct_context in ct_context_list:
             ct_attr_map = ct_context.get("attributes")
-            operate_status = ct_attr_map.get('operational-status')
-            health_status = ct_attr_map.get('health-state')
+            communication_status = ct_attr_map.get('communication-status')
             name = ct_attr_map.get('name')
             ct = {
                 'native_controller_id ': ct_attr_map.get('director-id'),
                 'name': name,
-                'status': self.analyse_status(operate_status,
-                                              health_status),
+                'status': VplexStorageDriver.analyse_director_status(
+                    communication_status),
                 'location ': '',
                 'storage_id ': self.storage_id,
-                'soft_version ': self.get_director_specified_version(
+                'soft_version ': self.get_value_from_nest_map(
                     director_version_map, name, "Director Software"),
                 'cpu_info': '',
                 'memory_size': ''
@@ -353,11 +353,115 @@ class VplexStorageDriver(driver.StorageDriver):
 
     def list_ports(self, context):
         """List all ports from storage system."""
-        pass
+        port_list = []
+        hardware_port_map = {}
+        hardware_port_resp = self.rest_handler. \
+            get_engine_director_hardware_port_resp()
+        export_port_resp = self.rest_handler.get_cluster_export_port_resp()
+        VplexStorageDriver.analyse_hardware_port(hardware_port_resp,
+                                                 hardware_port_map)
+        port_context_list = VplexStorageDriver. \
+            get_context_list(export_port_resp)
+        for port_context in port_context_list:
+            port_attr = port_context.get('attributes')
+            port_name = port_attr.get('name')
+            speed, max_speed, protocols, role, port_status, \
+                operational_status = self.get_hardware_port_info(
+                    hardware_port_map, port_name, 'attributes')
+            connection_status = VplexStorageDriver.analyse_port_connect_status(
+                port_status)
+            port = {
+                'native_port_id': port_attr.get('port-wwn'),
+                'name': port_attr.get('name'),
+                'type': VplexStorageDriver.analyse_port_type(protocols),
+                'logical_type': VplexStorageDriver.analyse_port_logical_type(
+                    role),
+                'connection_status': connection_status,
+                'health_status': VplexStorageDriver.analyse_port_health_status(
+                    operational_status),
+                'location': '',
+                'storage_id': self.storage_id,
+                'native_parent_id': port_attr.get('director-id'),
+                'speed': VplexStorageDriver.analyse_speed(speed),
+                'max_speed': VplexStorageDriver.analyse_speed(max_speed),
+                'wwn': port_attr.get('port-wwn'),
+                'mac_address': '',
+                'ipv4': '',
+                'ipv4_mask': '',
+                'ipv6': '',
+                'ipv6_mask': ''
+            }
+            port_list.append(port)
+        manage_port_resp = self.rest_handler.get_management_server_port_resp()
+        ms_port_context_list = VplexStorageDriver. \
+            get_context_list(manage_port_resp)
+        for ms_port_context in ms_port_context_list:
+            port_attr = ms_port_context.get('attributes')
+            speed = port_attr.get('speed')
+            status = port_attr.get('status')
+            connection_status = VplexStorageDriver.analyse_port_connect_status(
+                status)
+            inet6_address = port_attr.get('inet6-address')
+            ipv6, ipv6_mask = VplexStorageDriver.analyse_management_port_ipv6(
+                inet6_address)
+            port = {
+                'native_port_id': '',
+                'name': port_attr.get('name'),
+                'type': constants.PortType.ETH,
+                'logical_type': constants.PortLogicalType.MANAGEMENT,
+                'connection_status': connection_status,
+                'health_status': constants.PortHealthStatus.UNKNOWN,
+                'location': '',
+                'storage_id': self.storage_id,
+                'native_parent_id': port_attr.get('director-id'),
+                'speed': VplexStorageDriver.analyse_speed(speed),
+                'max_speed': VplexStorageDriver.analyse_speed(speed),
+                'wwn': '',
+                'mac_address': '',
+                'ipv4': port_attr.get('address'),
+                'ipv4_mask': port_attr.get('net-mask'),
+                'ipv6': ipv6,
+                'ipv6_mask': ipv6_mask
+            }
+            port_list.append(port)
+        return port_list
 
     def list_disks(self, context):
         """List all disks from storage system."""
-        pass
+        disk_list = []
+        storage_volume_resp = self.rest_handler. \
+            get_cluster_storage_element_storage_volume()
+        all_volume = VplexStorageDriver.get_context_list(storage_volume_resp)
+        for volume in all_volume:
+            volume_attr = volume.get('attributes')
+            operate_status = volume_attr.get('operational-status')
+            health_status = volume_attr.get('health-state')
+            manufacturer = volume_attr.get('vendor-specific-name')
+            logic_type = volume_attr.get('use')
+            capacity = VplexStorageDriver.analyse_capacity(
+                volume_attr.get('capacity'))
+            if manufacturer:
+                manufacturer = str(manufacturer).strip()
+            disk = {
+                'native_disk_id': volume_attr.get('system-id'),
+                'name': volume_attr.get('name'),
+                'physical_type': constants.DiskPhysicalType.UNKNOWN,
+                'logical_type': VplexStorageDriver.analyse_disk_logic_type(
+                    logic_type),
+                'status': self.analyse_status(operate_status, health_status),
+                'location': '',
+                'storage_id ': self.storage_id,
+                'native_disk_group_id': volume_attr.get('storage-array-name'),
+                'serial_number': '',
+                'manufacturer': manufacturer,
+                'model': '',
+                'firmware ': '',
+                'speed': '',
+                'capacity ': capacity,
+                'health_score': ''
+            }
+            disk_list.append(disk)
+        return disk_list
 
     @staticmethod
     def get_context_list(response):
@@ -365,6 +469,7 @@ class VplexStorageDriver(driver.StorageDriver):
         if response:
             contexts = response.get("context")
             for context in contexts:
+                type = context.get("type")
                 parent = context.get("parent")
                 attributes = context.get("attributes")
                 context_map = {}
@@ -373,6 +478,7 @@ class VplexStorageDriver(driver.StorageDriver):
                     key = attribute.get("name")
                     value = attribute.get("value")
                     attr_map[key] = value
+                context_map["type"] = type
                 context_map["parent"] = parent
                 context_map["attributes"] = attr_map
                 context_list.append(context_map)
@@ -411,6 +517,15 @@ class VplexStorageDriver(driver.StorageDriver):
                                 director_version_map[
                                     director_name] = version_map
 
+    @staticmethod
+    def analyse_director_status(status):
+        controller_status = constants.ControllerStatus.UNKNOWN
+        if status:
+            status_value = consts.CONTROLLER_STATUS_MAP.get(status)
+            if status_value:
+                controller_status = status_value
+        return controller_status
+
     def get_director_specified_version(self, version_map, director_name,
                                        specified_name):
         version_value = ''
@@ -419,6 +534,113 @@ class VplexStorageDriver(driver.StorageDriver):
             if director_map:
                 version_value = director_map.get(specified_name)
         return version_value
+
+    def get_value_from_nest_map(self, nest_map, first_key, second_key):
+        final_value = ''
+        if nest_map:
+            second_map = nest_map.get(first_key)
+            if second_map:
+                final_value = second_map.get(second_key)
+        return final_value
+
+    def get_hardware_port_info(self, nest_map, first_key, second_key):
+        speed = ''
+        max_speed = ''
+        protocols = []
+        role = ''
+        port_status = ''
+        operational_status = ''
+
+        if nest_map:
+            second_map = nest_map.get(first_key)
+            if second_map:
+                third_map = second_map.get(second_key)
+                if third_map:
+                    speed = third_map.get('current-speed')
+                    max_speed = third_map.get('max-speed')
+                    protocols = third_map.get('protocols')
+                    role = third_map.get('role')
+                    port_status = third_map.get('port-status')
+                    operational_status = third_map.get('operational-status')
+        return (speed, max_speed, protocols, role, port_status,
+                operational_status)
+
+    @staticmethod
+    def analyse_hardware_port(resp, hardware_port_map):
+        port_list = VplexStorageDriver.get_context_list(resp)
+        if port_list:
+            for port in port_list:
+                port_wwn = port.get("attributes").get("target-port")
+                hardware_port_map[port_wwn] = port
+
+    @staticmethod
+    def analyse_port_type(protocols):
+        port_type = constants.PortType.OTHER
+        if protocols:
+            for protocol in protocols:
+                port_type_value = consts.PORT_TYPE_MAP.get(protocol)
+                if port_type_value:
+                    port_type = port_type_value
+                    break
+        return port_type
+
+    @staticmethod
+    def analyse_port_logical_type(role):
+        port_logic_type = constants.PortLogicalType.OTHER
+        if role:
+            port_type_value = consts.PORT_LOGICAL_TYPE_MAP.get(role)
+            if port_type_value:
+                port_logic_type = port_type_value
+        return port_logic_type
+
+    @staticmethod
+    def analyse_port_connect_status(status):
+        port_connect_status = constants.PortConnectionStatus.UNKNOWN
+        if status:
+            port_status_value = consts.PORT_CONNECT_STATUS_MAP.get(status)
+            if port_status_value:
+                port_connect_status = port_status_value
+        return port_connect_status
+
+    @staticmethod
+    def analyse_port_health_status(status):
+        port_health_status = constants.PortHealthStatus.UNKNOWN
+        if status:
+            port_status_value = consts.PORT_HEALTH_STATUS_MAP.get(status)
+            if port_status_value:
+                port_health_status = port_status_value
+        return port_health_status
+
+    @staticmethod
+    def analyse_speed(speed):
+        speed_value = 0
+        if speed:
+            match_obj = re.search(r'([1-9]\d*\.?\d*)|(0\.\d*[1-9])', speed)
+            if match_obj:
+                speed_value = int(match_obj.group(0)) * units.G
+        return speed_value
+
+    @staticmethod
+    def analyse_management_port_ipv6(ipv6_infos):
+        ipv6_address = ''
+        ipv6_mask = ''
+        if ipv6_infos:
+            for ipv6_info in ipv6_infos:
+                if 'Link' in ipv6_info:
+                    match_obj = re.search(r'(^.+?)/(\d+)', ipv6_info)
+                    if match_obj:
+                        ipv6_address = match_obj.group(1)
+                        ipv6_mask = match_obj.group(2)
+        return ipv6_address, ipv6_mask
+
+    @staticmethod
+    def analyse_disk_logic_type(logic_type):
+        disk_logic_type = constants.DiskLogicalType.UNKNOWN
+        if logic_type:
+            logic_type_value = consts.DISK_LOGICAL_TYPE_MAP.get(logic_type)
+            if logic_type_value:
+                disk_logic_type = logic_type_value
+        return disk_logic_type
 
 
 @staticmethod

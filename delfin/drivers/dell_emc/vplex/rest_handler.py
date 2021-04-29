@@ -136,3 +136,24 @@ class RestHandler(RestClient):
         data = {"args": args}
         response = self.get_rest_info(url, data, method='POST')
         return response
+
+    def get_cluster_export_port_resp(self):
+        url = '%s/clusters/*/exports/ports/*' % consts.BASE_CONTEXT
+        response = self.get_rest_info(url)
+        return response
+
+    def get_engine_director_hardware_port_resp(self):
+        url = '%s/engines/*/directors/*/hardware/ports/*' % consts.BASE_CONTEXT
+        response = self.get_rest_info(url)
+        return response
+
+    def get_cluster_storage_element_storage_volume(self):
+        url = '%s/clusters/*/storage-elements/storage-volumes/*' % \
+              consts.BASE_CONTEXT
+        response = self.get_rest_info(url)
+        return response
+
+    def get_management_server_port_resp(self):
+        url = '%s/management-server/ports/*' % consts.BASE_CONTEXT
+        response = self.get_rest_info(url)
+        return response

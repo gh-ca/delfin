@@ -232,18 +232,12 @@ GET_ALL_ENGINE_DIRECTOR = {
                     "value": "0x00000000472029e9"
                 },
                 {
-                    "name": "health-state",
-                    "value": "major-failure"
+                    "name": "communication-status",
+                    "value": "ok"
                 },
                 {
                     "name": "name",
                     "value": "director-1-1-A"
-                },
-                {
-                    "name": "operational-status",
-                    "value": [
-                        "ok"
-                    ]
                 }
             ]
         }
@@ -253,7 +247,8 @@ controllers_result = [
     {
         'native_controller_id ': '0x00000000472029e9',
         'name': 'director-1-1-A',
-        'status': 'abnormal', 'location ': '',
+        'status': 'normal',
+        'location ': '',
         'storage_id ': '12345',
         'soft_version ': '161.1.0.78.0',
         'cpu_info': '',
@@ -279,6 +274,261 @@ GET_VERSION_VERBOSE = {
                    "What:     SSD Model: P30056-0000000000000 000000000\n	"
                    "Version:  0005\n"
 }
+
+GET_ALL_CLUSTER_EXPORT_PORT = {
+    "context": [
+        {
+            "type": "fc-target-port",
+            "parent": "/clusters/cluster-1/exports/ports",
+            "attributes": [
+                {
+                    "name": "director-id",
+                    "value": "0x00000000472029e9"
+                },
+                {
+                    "name": "enabled",
+                    "value": "true"
+                },
+                {
+                    "name": "export-status",
+                    "value": "ok"
+                },
+                {
+                    "name": "name",
+                    "value": "P00000000472029E9-A0-FC00"
+                },
+                {
+                    "name": "node-wwn",
+                    "value": "0x50001440472029e9"
+                },
+                {
+                    "name": "port-id",
+                    "value": None
+                },
+                {
+                    "name": "port-wwn",
+                    "value": "0x500014428029e900"
+                }
+            ]
+        }
+    ]
+}
+
+GET_ALL_ENGINE_DIRECTOR_HARDWARE_PORT = {
+    "context": [
+        {
+            "type": "fc-port",
+            "parent": "/engines/engine-1-1/directors/director-1-1-A/"
+                      "hardware/ports",
+            "attributes": [
+                {
+                    "name": "address",
+                    "value": "0x500014428029e900"
+                },
+                {
+                    "name": "current-speed",
+                    "value": "8Gbits/s"
+                },
+                {
+                    "name": "enabled",
+                    "value": "true"
+                },
+                {
+                    "name": "max-speed",
+                    "value": "8Gbits/s"
+                },
+                {
+                    "name": "name",
+                    "value": "A0-FC00"
+                },
+                {
+                    "name": "node-wwn",
+                    "value": "0x50001440472029e9"
+                },
+                {
+                    "name": "operational-status",
+                    "value": "ok"
+                },
+                {
+                    "name": "port-status",
+                    "value": "up"
+                },
+                {
+                    "name": "port-wwn",
+                    "value": "0x500014428029e900"
+                },
+                {
+                    "name": "protocols",
+                    "value": [
+                        "fc"
+                    ]
+                },
+                {
+                    "name": "role",
+                    "value": "front-end"
+                },
+                {
+                    "name": "target-port",
+                    "value": "P00000000472029E9-A0-FC00"
+                }
+            ]
+        }
+    ]
+}
+GET_ALL_MANAGEMENT_PORT = {
+    "context": [
+        {
+            "type": "management-ethernet-port",
+            "parent": "/management-server/ports",
+            "attributes": [
+                {
+                    "name": "address",
+                    "value": "8.44.162.250"
+                },
+                {
+                    "name": "inet6-address",
+                    "value": [
+                        "fe80:0:0:0:21b:21ff:fecd:1d0a/64 Scope: Link"
+                    ]
+                },
+                {
+                    "name": "inet6-gateway",
+                    "value": None
+                },
+                {
+                    "name": "name",
+                    "value": "eth3"
+                },
+                {
+                    "name": "net-mask",
+                    "value": "255.255.192.0"
+                },
+                {
+                    "name": "speed",
+                    "value": None
+                },
+                {
+                    "name": "status",
+                    "value": None
+                }
+            ],
+            "children": []
+        }
+    ]
+}
+ports_result = [
+    {
+        'native_port_id': '0x500014428029e900',
+        'name': 'P00000000472029E9-A0-FC00',
+        'type': 'fc',
+        'logical_type': 'frontend',
+        'connection_status': 'connected',
+        'health_status': 'normal',
+        'location': '',
+        'storage_id': '12345',
+        'native_parent_id': '0x00000000472029e9',
+        'speed': 8000000000,
+        'max_speed': 8000000000,
+        'wwn': '0x500014428029e900',
+        'mac_address': '',
+        'ipv4': '',
+        'ipv4_mask': '',
+        'ipv6': '',
+        'ipv6_mask': ''
+    },
+    {
+        'native_port_id': '',
+        'name': 'eth3',
+        'type': 'eth',
+        'logical_type': 'management',
+        'connection_status': 'unknown',
+        'health_status': 'unknown',
+        'location': '',
+        'storage_id': '12345',
+        'native_parent_id': None,
+        'speed': 0,
+        'max_speed': 0,
+        'wwn': '',
+        'mac_address': '',
+        'ipv4': '8.44.162.250',
+        'ipv4_mask': '255.255.192.0',
+        'ipv6': 'fe80:0:0:0:21b:21ff:fecd:1d0a',
+        'ipv6_mask': '64'
+    }
+]
+GET_ALL_CLUSTER_STORAGE_VOLUME = {
+    "context": [
+        {
+            "type": "storage-volume",
+            "parent": "/clusters/cluster-1/storage-elements/storage-volumes",
+            "attributes": [
+                {
+                    "name": "capacity",
+                    "value": "644245094400B"
+                },
+                {
+                    "name": "health-state",
+                    "value": "ok"
+                },
+                {
+                    "name": "name",
+                    "value": "CLAIM_CL_6800V3_VPLEX_LUN0"
+                },
+                {
+                    "name": "operational-status",
+                    "value": "ok"
+                },
+                {
+                    "name": "provision-type",
+                    "value": "legacy"
+                },
+                {
+                    "name": "storage-array-name",
+                    "value": "HUAWEI-XSG1-210235982610F4000017"
+                },
+                {
+                    "name": "storage-volumetype",
+                    "value": "normal"
+                },
+                {
+                    "name": "system-id",
+                    "value": "VPD83T3:69c37f410096bdb801a7c86d00000000"
+                },
+                {
+                    "name": "thin-rebuild",
+                    "value": "false"
+                },
+                {
+                    "name": "use",
+                    "value": "used"
+                },
+                {
+                    "name": "vendor-specific-name",
+                    "value": "HUAWEI  "
+                }
+            ]
+        }
+    ]
+}
+disks_result = [
+    {
+        'native_disk_id': 'VPD83T3:69c37f410096bdb801a7c86d00000000',
+        'name': 'CLAIM_CL_6800V3_VPLEX_LUN0',
+        'physical_type': 'unknown',
+        'logical_type': 'member',
+        'status': 'normal',
+        'location': '',
+        'storage_id ': '12345',
+        'native_disk_group_id': 'HUAWEI-XSG1-210235982610F4000017',
+        'serial_number': '',
+        'manufacturer': 'HUAWEI',
+        'model': '',
+        'firmware ': '',
+        'speed': '',
+        'capacity ': '644245094400',
+        'health_score': ''
+    }
+]
 
 
 class TestVplexStorDriver(TestCase):
@@ -332,3 +582,22 @@ class TestVplexStorDriver(TestCase):
         controllers = VplexStorageDriver(**ACCESS_INFO). \
             list_controllers(context)
         self.assertDictEqual(controllers[0], controllers_result[0])
+
+    @mock.patch.object(RestHandler, 'get_cluster_export_port_resp')
+    @mock.patch.object(RestHandler, 'get_engine_director_hardware_port_resp')
+    @mock.patch.object(RestHandler, 'get_management_server_port_resp')
+    def test_list_port(self, mock_management_port, mock_hardware_port,
+                       mock_export_port):
+        mock_hardware_port.return_value = GET_ALL_ENGINE_DIRECTOR_HARDWARE_PORT
+        mock_export_port.return_value = GET_ALL_CLUSTER_EXPORT_PORT
+        mock_management_port.return_value = GET_ALL_MANAGEMENT_PORT
+        ports = VplexStorageDriver(**ACCESS_INFO).list_ports(context)
+        self.assertDictEqual(ports[0], ports_result[0])
+        self.assertDictEqual(ports[1], ports_result[1])
+
+    @mock.patch.object(RestHandler,
+                       'get_cluster_storage_element_storage_volume')
+    def test_list_disk(self, mock_disk):
+        mock_disk.return_value = GET_ALL_CLUSTER_STORAGE_VOLUME
+        disks = VplexStorageDriver(**ACCESS_INFO).list_disks(context)
+        self.assertDictEqual(disks[0], disks_result[0])
