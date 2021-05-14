@@ -555,58 +555,6 @@ class VplexStorageDriver(driver.StorageDriver):
                 speed_value = int(match_obj.group(0)) * units.G
         return speed_value
 
-    @staticmethod
-    def get_context_list(response):
-        context_list = []
-        if response:
-            contexts = response.get("context")
-            for context in contexts:
-                parent = context.get("parent")
-                attributes = context.get("attributes")
-                context_map = {}
-                attr_map = {}
-                for attribute in attributes:
-                    key = attribute.get("name")
-                    value = attribute.get("value")
-                    attr_map[key] = value
-                context_map["parent"] = parent
-                context_map["attributes"] = attr_map
-                context_list.append(context_map)
-        return context_list
-
-    @staticmethod
-    def analyse_director_version(version_resp, director_version_map):
-        custom_data = version_resp.get('custom-data')
-        detail_arr = custom_data.split('\n')
-        director_name = ''
-        version_name = ''
-        for detail in detail_arr:
-            if detail is not None and detail != '':
-                if "For director" in detail:
-                    match_obj = re.search(
-                        r'For director.+?directors/(.*?):', detail)
-                    if match_obj:
-                        director_name = match_obj.group(1)
-                    continue
-                if director_name:
-                    if "What:" in detail:
-                        match_obj = re.search(r'What:\s+(.+?)$', detail)
-                        if match_obj:
-                            version_name = match_obj.group(1)
-                        continue
-                    if version_name:
-                        match_obj = re.search(r'Version:\s+(.+?)$', detail)
-                        if match_obj:
-                            version_value = match_obj.group(1)
-                            if director_version_map.get(director_name):
-                                director_version_map.get(director_name)[
-                                    version_name] = version_value
-                            else:
-                                version_map = {}
-                                version_map[version_name] = version_value
-                                director_version_map[
-                                    director_name] = version_map
-
 
 @staticmethod
 def handle_detail_list(detail_info, detail_map, split):
