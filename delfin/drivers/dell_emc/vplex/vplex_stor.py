@@ -607,15 +607,6 @@ class VplexStorageDriver(driver.StorageDriver):
                                 director_version_map[
                                     director_name] = version_map
 
-    def get_director_specified_version(self, version_map, director_name,
-                                       specified_name):
-        version_value = ''
-        if version_map:
-            director_map = version_map.get(director_name)
-            if director_map:
-                version_value = director_map.get(specified_name)
-        return version_value
-
 
 @staticmethod
 def handle_detail_list(detail_info, detail_map, split):
