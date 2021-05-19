@@ -236,8 +236,3 @@ class TestXtremIOStorDriver(TestCase):
         trap = self.driver.parse_alert(context, TRAP_INFO)
         trap_result['occur_time'] = trap['occur_time']
         self.assertDictEqual(trap, trap_result)
-
-    @mock.patch.object(RestHandler, 'login')
-    def test_reset_connection(self, mock_login):
-        self.driver.reset_connection(context, **ACCESS_INFO)
-        self.assertEqual(mock_login.call_count, 1)
