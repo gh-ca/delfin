@@ -430,10 +430,3 @@ class TestHpe3parStorageDriver(TestCase):
         alert_list = driver.list_alerts(context, None)
         expected_alert[0]['occur_time'] = alert_list[0]['occur_time']
         self.assertDictEqual(alert_list[0], expected_alert[0])
-
-    @mock.patch.object(AlertHandler, 'clear_alert')
-    def test_clear_alert(self, mock_clear_alert):
-        driver = create_driver()
-        alert_id = '230584300921369'
-        driver.clear_alert(context, alert_id)
-        self.assertEqual(mock_clear_alert.call_count, 1)
