@@ -391,3 +391,181 @@ class SSHHandler(object):
             if self.ALERT_NOT_FOUND_CODE not in result:
                 raise exception.InvalidResults(six.text_type(result))
             LOG.warning("Alert %s doesn't exist.", alert)
+
+    def list_controllers(self, storage_id):
+        try:
+            controller_list = []
+            control_info = self.exec_ssh_command('lscontroller')
+            control_res = control_info.split('\n')
+            for i in range(1, len(control_res)):
+                if control_res[i] is None or control_res[i] == '':
+                    continue
+                control_str = ' '.join(control_res[i].split())
+                str_info = control_str.split(' ')
+                control_id = str_info[0]
+                detail_command = 'lscontroller %s' % control_id
+                deltail_info = self.exec_ssh_command(detail_command)
+                control_map = {}
+                self.handle_detail(deltail_info, control_map, split=' ')
+                status = constants.StorageStatus.NORMAL
+                if control_map.get('degraded') == 'yes':
+                    status = constants.StorageStatus.ABNORMAL
+                controller_result = {
+                    'name': control_map.get('controller_name'),
+                    'storage_id': storage_id,
+                    'native_controller_id': control_map.get('id'),
+                    'status': status,
+                    'soft_version': control_map.get('product_revision'),
+                    'location': control_map.get('controller_name'),
+                    'memory_size': '',
+                }
+                controller_list.append(controller_result)
+            return controller_list
+        except Exception as err:
+            err_msg = "Failed to get controller metrics from StorwizeStor: %s"\
+                      % (six.text_type(err))
+            LOG.error(err_msg)
+            raise exception.InvalidResults(err_msg)
+
+    def list_disks(self, storage_id):
+        try:
+            disk_list = []
+            disk_info = self.exec_ssh_command('lsmdisk')
+            disk_res = disk_info.split('\n')
+            for i in range(1, len(disk_res)):
+                if disk_res[i] is None or disk_res[i] == '':
+                    continue
+                control_str = ' '.join(disk_res[i].split())
+                str_info = control_str.split(' ')
+                disk_id = str_info[0]
+                detail_command = 'lsmdisk %s' % disk_id
+                deltail_info = self.exec_ssh_command(detail_command)
+                disk_map = {}
+                self.handle_detail(deltail_info, disk_map, split=' ')
+                status = constants.StorageStatus.NORMAL
+                if disk_map.get('status') == 'offline':
+                    status = constants.StorageStatus.OFFLINE
+                disk_drive_command = \
+                    'lsdrive -filtervalue mdisk_id=%s' % disk_id
+                drive_info = self.exec_ssh_command(disk_drive_command)
+                drive_map = {}
+                self.handle_detail(drive_info, drive_map, split=' ')
+                disk_result = {
+                    'name': disk_map.get('name'),
+                    'storage_id': storage_id,
+                    'native_disk_id': disk_map.get('id'),
+                    'serial_number': drive_map.get('FRU_identity'),
+                    'manufacturer': drive_map.get('vendor_id'),
+                    'model': drive_map.get('product_id'),
+                    'firmware': drive_map.get('firmware_level'),
+                    'speed': drive_map.get('RPM'),
+                    'capacity': int(self.parse_string(
+                        drive_map.get('capacity'))),
+                    'status': status,
+                    'physical_type': drive_map.get('tech_type'),
+                    'logical_type': '',#need huawei add
+                    'native_disk_group_id': disk_map.get('mdisk_grp_name'),
+                    'location': drive_map.get('slot')
+                }
+                disk_list.append(disk_result)
+            return disk_list
+        except Exception as err:
+            err_msg = "Failed to get disk metrics from StorwizeStor: %s" % \
+                      (six.text_type(err))
+            raise exception.InvalidResults(err_msg)
+
+    def get_fc_port(self, port_list, storage_id):
+        disk_info = self.exec_ssh_command('lsportfc')
+        disk_res = disk_info.split('\n')
+        for i in range(1, len(disk_res)):
+            if disk_res[i] is None or disk_res[i] == '':
+                continue
+            control_str = ' '.join(disk_res[i].split())
+            str_info = control_str.split(' ')
+            port_id = str_info[0]
+            detail_command = 'lsportfc %s' % port_id
+            deltail_info = self.exec_ssh_command(detail_command)
+            port_map = {}
+            self.handle_detail(deltail_info, port_map, split=' ')
+            status = constants.StorageStatus.NORMAL
+            if port_map.get('status') != 'active':
+                status = constants.StorageStatus.ABNORMAL
+            conn_status = status
+            port_type = constants.PortType.FC
+            if port_map.get('type') == 'ethernet':
+                port_type = constants.PortType.ETH
+            location = '%s_%s' % (port_map.get('node_name'),
+                                  port_map.get('id'))
+            port_result = {
+                'name': port_map.get('id'),
+                'storage_id': storage_id,
+                'native_port_id': port_map.get('id'),
+                'location': location,
+                'connection_status': conn_status,
+                'health_status': status,
+                'type': port_type,
+                'logical_type': '',
+                'max_speed': port_map.get('port_speed'),
+                'native_parent_id': port_map.get('node_name'),
+                'wwn': port_map.get('WWPN'),
+                'mac_address': '',
+                'ipv4': '',
+                'ipv4_mask': '',
+                'ipv6': '',
+                'ipv6_mask': ''
+            }
+            port_list.append(port_result)
+
+    def get_iscsi_port(self, port_list, storage_id):
+        disk_info = self.exec_ssh_command('lsportip')
+        disk_res = disk_info.split('\n')
+        for i in range(1, len(disk_res)):
+            if disk_res[i] is None or disk_res[i] == '':
+                continue
+            control_str = ' '.join(disk_res[i].split())
+            str_info = control_str.split(' ')
+            port_id = str_info[0]
+            node_id = str_info[1]
+            detail_command = 'lsportip -filtervalue node_id=%s id=%s'\
+                             % (node_id, port_id)
+            deltail_info = self.exec_ssh_command(detail_command)
+            port_map = {}
+            self.handle_detail(deltail_info, port_map, split=' ')
+            status = constants.StorageStatus.ABNORMAL
+            if port_map.get('state') == 'online':
+                status = constants.StorageStatus.NORMAL
+            conn_status = constants.PortConnectionStatus.DISCONNECTED
+            if port_map.get('state') == 'online':
+                conn_status = constants.PortConnectionStatus.CONNECTED
+            port_type = constants.PortType.ISCSI
+            location = '%s_%s' % (port_map.get('node_name'),
+                                  port_map.get('id'))
+
+            port_result = {
+                'name': port_map.get('id'),
+                'storage_id': storage_id,
+                'native_port_id': port_map.get('id'),
+                'location': location,
+                'connection_status': conn_status,
+                'health_status': status,
+                'type': port_type,
+                'logical_type': '',
+                'max_speed': port_map.get('speed'),
+                'native_parent_id': port_map.get('node_name'),
+                'wwn': '',
+                'mac_address': port_map.get('MAC'),
+                'ipv4': '',
+                'ipv4_mask': '',
+                'ipv6': '',
+                'ipv6_mask': ''
+            }
+            port_list.append(port_result)
+
+    def list_ports(self, storage_id):
+        try:
+            port_list = []
+
+        except Exception as err:
+            err_msg = "Failed to get ports metrics from StorwizeStor: %s" % \
+                      (six.text_type(err))
+            raise exception.InvalidResults(err_msg)
