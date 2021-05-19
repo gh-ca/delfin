@@ -14,8 +14,6 @@
 import sys
 from unittest import TestCase, mock
 
-from delfin.drivers.hpe.hpe_3par.alert_handler import AlertHandler
-
 sys.modules['delfin.cryptor'] = mock.Mock()
 from delfin import exception
 from delfin import context
