@@ -357,26 +357,4 @@ class TestVnxBlocktorageDriver(TestCase):
         cer_map = navi_handler.analyse_cer(CER_INFOS, host_ip='1.1.1.1')
         self.assertDictEqual(cer_map, re_map)
 
-    def test_analyse_cer_exception(self):
-        with self.assertRaises(Exception) as exc:
-            navi_handler = NaviHandler(**ACCESS_INFO)
-            navi_handler.analyse_cer(CER_INFOS)
-        self.assertIn('arrange cer info error', str(exc.exception))
-
-    def test_get_resources_info_exception(self):
-        with self.assertRaises(Exception) as exc:
-            NaviClient.exec = mock.Mock(side_effect=[LUN_INFOS])
-            navi_handler = NaviHandler(**ACCESS_INFO)
-            navi_handler.get_resources_info('abc', None)
-        self.assertIn('object is not callable', str(exc.exception))
-
-    def test_parse_alert_exception(self):
-        with self.assertRaises(Exception) as exc:
-            AlertHandler.parse_alert(None)
-        self.assertIn('The results are invalid', str(exc.exception))
-
-    def test_clear_alert(self):
-        self.driver.clear_alert(None, None)
-
-    def test_remove_trap_config(self):
-        self.driver.remove_trap_config(None, None)
+    
