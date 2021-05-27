@@ -365,8 +365,8 @@ class VplexStorageDriver(driver.StorageDriver):
             port_attr = port_context.get('attributes')
             port_name = port_attr.get('name')
             speed, max_speed, protocols, role, port_status, \
-            operational_status = self.get_hardware_port_info(
-                hardware_port_map, port_name, 'attributes')
+                operational_status = self.get_hardware_port_info(
+                    hardware_port_map, port_name, 'attributes')
             connection_status = VplexStorageDriver.analyse_port_connect_status(
                 port_status)
             port = {
