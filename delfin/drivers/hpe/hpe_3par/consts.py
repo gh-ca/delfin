@@ -662,7 +662,7 @@ CONTROLLER_STATUS_MAP = {
     'FAILED': constants.ControllerStatus.OFFLINE
 }
 DISK_PHYSICAL_TYPE_MAP = {
-    'FC': constants.DiskPhysicalType.UNKNOWN,
+    'FC': constants.DiskPhysicalType.FC,
     'SSD': constants.DiskPhysicalType.SSD,
     'NL': constants.DiskPhysicalType.UNKNOWN
 }
