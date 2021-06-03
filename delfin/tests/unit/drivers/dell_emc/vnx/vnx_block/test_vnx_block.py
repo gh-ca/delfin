@@ -684,15 +684,3 @@ class TestVnxBlocktorageDriver(TestCase):
         NaviClient.exec = mock.Mock(return_value=DISK_DATAS)
         disks = self.driver.list_disks(context)
         self.assertDictEqual(disks[0], DISK_RESULT[0])
-
-    def test_get_controllers(self):
-        NaviClient.exec = mock.Mock(side_effect=[SP_DATAS, RESUME_DATAS])
-        controllers = self.driver.list_controllers(context)
-        self.assertDictEqual(controllers[0], SP_RESULT[0])
-
-    def test_get_ports(self):
-        NaviClient.exec = mock.Mock(
-            side_effect=[IO_PORT_CONFIG_DATAS, ISCSI_PORT_DATAS, PORT_DATAS,
-                         BUS_PORT_DATAS, BUS_PORT_STATE_DATAS])
-        ports = self.driver.list_ports(context)
-        self.assertDictEqual(ports[0], PORT_RESULT[0])
