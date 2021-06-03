@@ -455,55 +455,6 @@ class TestHpe3parStorageDriver(TestCase):
             self.assertIn('An unknown exception occurred',
                           str(exc.exception))
 
-    def test_f_list_volumes(self):
-        driver = create_driver()
-        expected = [{
-            'name': 'admin',
-            'storage_id': '12345',
-            'description': None,
-            'status': 'normal',
-            'native_volume_id': '0',
-            'native_storage_pool_id': '',
-            'wwn': '50002AC000001C9F',
-            'type': 'thick',
-            'total_capacity': 10737418240,
-            'used_capacity': 10737418240,
-            'free_capacity': 0,
-            'compressed': True,
-            'deduplicated': True
-        }]
-        ret = [{
-            "members": [{
-                "id": 0,
-                "name": "admin",
-                "provisioningType": 1,
-                "copyType": 1,
-                "baseId": 0,
-                "readOnly": False,
-                "state": 1,
-                "userSpace": {
-                    "reservedMiB": 10240,
-                    "rawReservedMiB": 20480,
-                    "usedMiB": 10240,
-                    "freeMiB": 0
-                },
-                "sizeMiB": 10240,
-                "wwn": "50002AC000001C9F"
-            }]
-        }]
-        pool_ret = {
-            "members": [{
-                "id": 0,
-                "uuid": "aa43f218-d3dd-4626-948f-8a160b0eac1d",
-                "name": "test"
-            }]
-        }
-        RestHandler.get_all_pools = mock.Mock(return_value=pool_ret)
-        with mock.patch.object(RestHandler, 'get_resinfo_call',
-                               side_effect=ret):
-            volumes = driver.list_volumes(context)
-            self.assertDictEqual(volumes[0], expected[0])
-
     def test_h_parse_alert(self):
         """ Success flow with all necessary parameters"""
         driver = create_driver()
