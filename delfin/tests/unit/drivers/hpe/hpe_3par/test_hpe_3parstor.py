@@ -582,11 +582,3 @@ class TestHpe3parStorageDriver(TestCase):
         alert_id = '230584300921369'
         driver.clear_alert(context, alert_id)
         self.assertEqual(mock_clear_alert.call_count, 1)
-
-    def test_get_controllers(self):
-        driver = create_driver()
-        SSHPool.get = mock.Mock(return_value={paramiko.SSHClient()})
-        SSHPool.do_exec = mock.Mock(
-            side_effect=[NODE_DATAS, NODE_CPU_DATAS, NODE_VERSION])
-        controllers = driver.list_controllers(context)
-        self.assertDictEqual(controllers[0], CONTROLLER_RESULT[0])
