@@ -596,12 +596,3 @@ class TestHpe3parStorageDriver(TestCase):
         SSHPool.do_exec = mock.Mock(side_effect=[DISK_DATAS, DISK_I_DATAS])
         disks = driver.list_disks(context)
         self.assertDictEqual(disks[0], DISK_RESULT[0])
-
-    def test_get_ports(self):
-        driver = create_driver()
-        SSHPool.do_exec = mock.Mock(
-            side_effect=[PORT_DATAS, PORT_I_DATAS, PORT_PER_DATAS,
-                         PORT_ISCSI_DATAS, PORT_RCIP_DATAS, PORT_C_DATAS,
-                         PORT_RCIP_DATAS, PORT_RCIP_DATAS])
-        ports = driver.list_ports(context)
-        self.assertDictEqual(ports[0], PORT_RESULT[0])
