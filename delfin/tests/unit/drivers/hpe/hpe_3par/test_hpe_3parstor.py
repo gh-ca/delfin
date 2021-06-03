@@ -590,9 +590,3 @@ class TestHpe3parStorageDriver(TestCase):
             side_effect=[NODE_DATAS, NODE_CPU_DATAS, NODE_VERSION])
         controllers = driver.list_controllers(context)
         self.assertDictEqual(controllers[0], CONTROLLER_RESULT[0])
-
-    def test_get_disks(self):
-        driver = create_driver()
-        SSHPool.do_exec = mock.Mock(side_effect=[DISK_DATAS, DISK_I_DATAS])
-        disks = driver.list_disks(context)
-        self.assertDictEqual(disks[0], DISK_RESULT[0])
