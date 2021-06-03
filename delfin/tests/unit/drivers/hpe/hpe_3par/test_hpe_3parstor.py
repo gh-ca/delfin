@@ -14,7 +14,6 @@
 import sys
 from unittest import TestCase, mock
 
-import paramiko
 
 sys.modules['delfin.cryptor'] = mock.Mock()
 from delfin import exception
@@ -24,7 +23,6 @@ from delfin.drivers.hpe.hpe_3par.alert_handler import AlertHandler
 from delfin.drivers.hpe.hpe_3par.rest_handler import RestHandler
 from delfin.drivers.hpe.hpe_3par.ssh_handler import SSHHandler
 from delfin.drivers.utils.rest_client import RestClient
-from delfin.drivers.utils.ssh_client import SSHPool
 
 from requests import Session
 
