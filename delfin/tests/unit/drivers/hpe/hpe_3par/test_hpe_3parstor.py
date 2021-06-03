@@ -14,6 +14,7 @@
 import sys
 from unittest import TestCase, mock
 
+import paramiko
 
 sys.modules['delfin.cryptor'] = mock.Mock()
 from delfin import exception
@@ -23,6 +24,7 @@ from delfin.drivers.hpe.hpe_3par.alert_handler import AlertHandler
 from delfin.drivers.hpe.hpe_3par.rest_handler import RestHandler
 from delfin.drivers.hpe.hpe_3par.ssh_handler import SSHHandler
 from delfin.drivers.utils.rest_client import RestClient
+from delfin.drivers.utils.ssh_client import SSHPool
 
 from requests import Session
 
@@ -455,6 +457,55 @@ class TestHpe3parStorageDriver(TestCase):
             self.assertIn('An unknown exception occurred',
                           str(exc.exception))
 
+    def test_f_list_volumes(self):
+        driver = create_driver()
+        expected = [{
+            'name': 'admin',
+            'storage_id': '12345',
+            'description': None,
+            'status': 'normal',
+            'native_volume_id': '0',
+            'native_storage_pool_id': '',
+            'wwn': '50002AC000001C9F',
+            'type': 'thick',
+            'total_capacity': 10737418240,
+            'used_capacity': 10737418240,
+            'free_capacity': 0,
+            'compressed': True,
+            'deduplicated': True
+        }]
+        ret = [{
+            "members": [{
+                "id": 0,
+                "name": "admin",
+                "provisioningType": 1,
+                "copyType": 1,
+                "baseId": 0,
+                "readOnly": False,
+                "state": 1,
+                "userSpace": {
+                    "reservedMiB": 10240,
+                    "rawReservedMiB": 20480,
+                    "usedMiB": 10240,
+                    "freeMiB": 0
+                },
+                "sizeMiB": 10240,
+                "wwn": "50002AC000001C9F"
+            }]
+        }]
+        pool_ret = {
+            "members": [{
+                "id": 0,
+                "uuid": "aa43f218-d3dd-4626-948f-8a160b0eac1d",
+                "name": "test"
+            }]
+        }
+        RestHandler.get_all_pools = mock.Mock(return_value=pool_ret)
+        with mock.patch.object(RestHandler, 'get_resinfo_call',
+                               side_effect=ret):
+            volumes = driver.list_volumes(context)
+            self.assertDictEqual(volumes[0], expected[0])
+
     def test_h_parse_alert(self):
         """ Success flow with all necessary parameters"""
         driver = create_driver()
@@ -531,3 +582,26 @@ class TestHpe3parStorageDriver(TestCase):
         alert_id = '230584300921369'
         driver.clear_alert(context, alert_id)
         self.assertEqual(mock_clear_alert.call_count, 1)
+
+    def test_get_controllers(self):
+        driver = create_driver()
+        SSHPool.get = mock.Mock(return_value={paramiko.SSHClient()})
+        SSHPool.do_exec = mock.Mock(
+            side_effect=[NODE_DATAS, NODE_CPU_DATAS, NODE_VERSION])
+        controllers = driver.list_controllers(context)
+        self.assertDictEqual(controllers[0], CONTROLLER_RESULT[0])
+
+    def test_get_disks(self):
+        driver = create_driver()
+        SSHPool.do_exec = mock.Mock(side_effect=[DISK_DATAS, DISK_I_DATAS])
+        disks = driver.list_disks(context)
+        self.assertDictEqual(disks[0], DISK_RESULT[0])
+
+    def test_get_ports(self):
+        driver = create_driver()
+        SSHPool.do_exec = mock.Mock(
+            side_effect=[PORT_DATAS, PORT_I_DATAS, PORT_PER_DATAS,
+                         PORT_ISCSI_DATAS, PORT_RCIP_DATAS, PORT_C_DATAS,
+                         PORT_RCIP_DATAS, PORT_RCIP_DATAS])
+        ports = driver.list_ports(context)
+        self.assertDictEqual(ports[0], PORT_RESULT[0])
