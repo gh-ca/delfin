@@ -97,7 +97,9 @@ class NetAppHandler(object):
 
     def login(self):
         try:
-            self.ssh_do_exec('version')
+            result = self.ssh_do_exec('version')
+            if 'is not a recognized command' in result:
+                raise exception.InvalidIpOrPort()
         except Exception as e:
             LOG.error("Failed to login netapp %s" %
                       (six.text_type(e)))
@@ -779,10 +781,13 @@ class NetAppHandler(object):
                         qt_map['Name'],
                         qt_map['VolumeName'],
                         qt_map['QtreeName'])
+                    qtree_name = qt_map['QtreeName']
                     if qt_map['QtreeName'] != '' and qtree_path is not None:
                         qtree_path += '/' + qt_map['QtreeName']
+                    else:
+                        qtree_name = qt_id
                     qt_model = {
-                        'name': qt_map['QtreeName'],
+                        'name': qtree_name,
                         'storage_id': storage_id,
                         'native_qtree_id': qt_id,
                         'path': qtree_path,
