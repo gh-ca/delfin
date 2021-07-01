@@ -760,7 +760,8 @@ class NetAppHandler(object):
                         if qtree['native_qtree_id'] == qt_id:
                             qtree_id = qt_id
                         if fs_id == qtree['native_filesystem_id'] \
-                                and qtree['name'] != "":
+                                and qtree['name'] != "" \
+                                and qtree['name'] != qtree['native_qtree_id']:
                             qt_share_name = share_name + '/' + qtree['name']
                             share = {
                                 'name': qt_share_name,
